@@ -1,0 +1,156 @@
+# Tutorial Detalhado: Deploy Django + MySQL em Servidor Externo (Linux Ubuntu)
+
+Este guia cobre o deploy seguro e automatizado do seu projeto Django com MySQL em um servidor Linux (exemplo: Ubuntu 22.04 LTS).
+
+---
+
+## 1. Pré-requisitos no Servidor
+- Ubuntu 20.04+ (ou similar)
+- Acesso root ou sudo
+- Porta 22 liberada (SSH)
+- Domínio configurado (opcional)
+
+## 2. Instalar dependências básicas
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install python3 python3-venv python3-pip python3-dev build-essential libmysqlclient-dev mysql-server nginx git -y
+```
+
+## 3. Configurar MySQL
+```bash
+sudo mysql -u root
+# No prompt do MySQL, execute:
+CREATE DATABASE windsufdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'windsurfuser'@'localhost' IDENTIFIED BY 'SuaSenhaForteAqui';
+GRANT ALL PRIVILEGES ON windsufdb.* TO 'windsurfuser'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+## 4. Baixar o projeto no servidor
+```bash
+cd /opt
+sudo git clone https://github.com/seuusuario/seuprojeto.git banco-de-imagem
+sudo chown -R $USER:$USER banco-de-imagem
+cd banco-de-imagem
+```
+
+## 5. Criar ambiente virtual Python
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install django mysqlclient
+```
+
+## 6. Configurar variáveis de ambiente (opcional, recomendado)
+Crie um arquivo `.env`:
+```
+SECRET_KEY='sua-secret-key-forte'
+DEBUG=False
+ALLOWED_HOSTS=seu_dominio.com,localhost,127.0.0.1
+DB_NAME=windsufdb
+DB_USER=windsurfuser
+DB_PASSWORD=SuaSenhaForteAqui
+DB_HOST=localhost
+DB_PORT=3306
+```
+Adapte seu `settings.py` para ler essas variáveis (use o pacote `python-dotenv` ou `os.environ`).
+
+## 7. Ajustar settings.py para produção
+- `DEBUG = False`
+- `ALLOWED_HOSTS = ['seu_dominio.com', 'localhost', '127.0.0.1']`
+- `STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')`
+- Use as variáveis do `.env` para banco e segredos
+
+## 8. Aplicar migrações e coletar estáticos
+```bash
+python manage.py migrate
+python manage.py collectstatic --noinput
+```
+
+## 9. Criar superusuário
+```bash
+python manage.py createsuperuser
+```
+
+## 10. Configurar Gunicorn (WSGI)
+```bash
+pip install gunicorn
+# Teste manual:
+gunicorn --bind 0.0.0.0:8000 libraryvault.wsgi:application
+```
+
+## 11. Configurar Gunicorn como serviço systemd
+Crie `/etc/systemd/system/bancoimagem.service`:
+```
+[Unit]
+Description=Gunicorn instance to serve banco-de-imagem
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/banco-de-imagem
+Environment="PATH=/opt/banco-de-imagem/venv/bin"
+ExecStart=/opt/banco-de-imagem/venv/bin/gunicorn --workers 3 --bind unix:/opt/banco-de-imagem/bancoimagem.sock libraryvault.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start bancoimagem
+sudo systemctl enable bancoimagem
+```
+
+## 12. Configurar Nginx
+Crie `/etc/nginx/sites-available/bancoimagem`:
+```
+server {
+    listen 80;
+    server_name seu_dominio.com;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        alias /opt/banco-de-imagem/staticfiles/;
+    }
+    location /media/ {
+        alias /opt/banco-de-imagem/media/;
+    }
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/opt/banco-de-imagem/bancoimagem.sock;
+    }
+}
+```
+```bash
+sudo ln -s /etc/nginx/sites-available/bancoimagem /etc/nginx/sites-enabled
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 13. Ativar HTTPS (SSL) com Certbot
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d seu_dominio.com
+```
+
+## 14. Checklist final
+- [x] Acesse http://seu_dominio.com para testar
+- [x] Crie backups regulares do banco
+- [x] Ative firewall (UFW)
+- [x] Monitore logs: `sudo journalctl -u bancoimagem` e `/var/log/nginx/error.log`
+
+---
+
+## Automatização
+- Todos os comandos acima podem ser copiados e colados em sequência.
+- Você pode criar um script `.sh` com os passos de 2 a 13 para automatizar o deploy.
+- Use variáveis de ambiente e arquivos `.env` para máxima segurança.
+
+---
+
+**Se quiser que eu gere um script bash pronto para deploy automático, me avise!**
+Se for usar Windows Server, posso gerar um tutorial específico para IIS ou Apache.

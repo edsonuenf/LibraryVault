@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success auto-dismiss">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+<script>
+  setTimeout(function() {
+    document.querySelectorAll('.auto-dismiss').forEach(function(el) {
+      el.style.transition = 'opacity 0.5s';
+      el.style.opacity = 0;
+      setTimeout(function() { el.remove(); }, 500);
+    });
+  }, 3000);
+</script>
+<div class="container py-4">
+  <h2 class="fw-bold mb-4">Meu Perfil</h2>
+  <div class="card shadow-sm mb-4" style="max-width: 480px;">
+    <div class="card-body">
+      <div class="text-center mb-3">
+        {% if user.profile_picture %}
+          <img src="{{ user.profile_picture.url }}" alt="Foto de Perfil" class="rounded-circle" style="width: 96px; height: 96px; object-fit: cover; border: 2px solid #ddd;">
+        {% else %}
+          <span class="d-inline-block rounded-circle bg-secondary text-white" style="width:96px; height:96px; line-height:96px; font-size:2.5rem; border:2px solid #ddd;">
+            <i class="bi bi-person"></i>
+          </span>
+        {% endif %}
+      </div>
+      <h5 class="card-title mb-3">Informações do Usuário</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item"><strong>Nome:</strong> {{ user.get_full_name|default:user.username }}</li>
+        <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
+        <li class="list-group-item"><strong>Usuário:</strong> {{ user.username }}</li>
+        {% if user.organization %}
+        <li class="list-group-item"><strong>Organização:</strong> {{ user.organization.name }}</li>
+        {% endif %}
+        {% if user.endereco %}
+        <li class="list-group-item"><strong>Endereço:</strong> {{ user.endereco }}</li>
+        {% endif %}
+        {% if user.cep %}
+        <li class="list-group-item"><strong>CEP:</strong> {{ user.cep }}</li>
+        {% endif %}
+        {% if user.telefone %}
+        <li class="list-group-item"><strong>Telefone:</strong> {{ user.telefone }}</li>
+        {% endif %}
+        <li class="list-group-item"><strong>Papel:</strong> {% if user.membership_set.all %}{{ user.membership_set.first.role|title }}{% else %}Usuário{% endif %}</li>
+      </ul>
+
+      <div class="mt-3 text-end">
+        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">
+          <i class="bi bi-pencil"></i> Editar Perfil
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

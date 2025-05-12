@@ -1,0 +1,54 @@
+{% with btn_class='btn btn-light btn-xs rounded-circle shadow-sm' icon_size='font-size:1rem;' btn_size='width:28px;height:28px;padding:0;' %}
+<div class="d-flex {% if vertical %}flex-column align-items-end gap-1 p-1{% else %}justify-content-center gap-1 pt-0 pb-2{% endif %}" style="z-index:2;">
+  <a href="mailto:?subject={{ title|urlencode }}&body={{ image.file.url|urlencode }}" class="{{ btn_class }} mb-1" style="{{ btn_size }}" title="Compartilhar por Email" data-bs-toggle="tooltip" data-bs-placement="{{ tooltip_placement|default:'top' }}" data-bs-title="Compartilhar por Email"><i class="bi bi-envelope" style="{{ icon_size }}"></i></a>
+
+  {% if image.id %}
+  <a href="{% url 'images:download_image' image.id %}" class="{{ btn_class }} mb-1" style="{{ btn_size }}" title="Download: {{ image.original_filename }}" data-bs-toggle="tooltip" data-bs-placement="{{ tooltip_placement|default:'top' }}" data-bs-title="Download: {{ image.original_filename }}"><i class="bi bi-download" style="{{ icon_size }}"></i></a>
+  {% if show_delete_icon %}
+  <a href="{% url 'images:delete_image' image.id %}?page={{ page|default:page_obj.number|default:'1' }}{% if order_by %}&order_by={{ order_by }}{% endif %}{% if filetype %}&filetype={{ filetype }}{% endif %}"
+     class="{{ btn_class }} mb-1 btn-delete-image" style="{{ btn_size }}" title="Excluir imagem" data-bs-toggle="tooltip" data-bs-placement="{{ tooltip_placement|default:'top' }}" data-bs-title="Excluir imagem">
+    <i class="bi bi-trash" style="{{ icon_size }}"></i>
+  </a>
+  {% endif %}
+{% endif %}
+
+
+
+
+</div>
+{% endwith %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.btn-like').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      var icon = btn.querySelector('i');
+      if (icon) {
+        // Usa dataset para controlar o estado
+        if (icon.dataset.liked === 'true') {
+          icon.style.color = '#000'; // desligado
+          icon.dataset.liked = 'false';
+          btn.classList.remove('border-warning');
+          btn.classList.add('border');
+          btn.classList.remove('bg-warning');
+          btn.classList.add('btn-light');
+          icon.classList.remove('bi-heart-fill');
+          icon.classList.add('bi-heart');
+        } else {
+          icon.style.color = '#ff9800'; // ligado
+          icon.dataset.liked = 'true';
+          btn.classList.add('border-warning');
+          btn.classList.add('border');
+          btn.classList.add('bg-warning');
+          btn.classList.remove('btn-light');
+          icon.classList.remove('bi-heart-fill');
+          icon.classList.add('bi-heart');
+        }
+        icon.classList.remove('bi-heart-fill');
+        icon.classList.add('bi-heart');
+      }
+    });
+  });
+});
+</script>
+

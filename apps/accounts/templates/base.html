@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibraryVault</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+      body { background: #f8f9fa; }
+      .navbar-brand {
+        color: #fff !important;
+        font-weight: bold;
+        font-size: 1.3rem;
+        letter-spacing: 0.5px;
+      }
+      .logo-img {
+        height: 36px;
+        width: auto;
+        margin-right: 8px;
+      }
+      .navbar-user {
+        font-size: 1rem;
+        font-weight: 500;
+      }
+      .navbar, .navbar * {
+        color: #fff !important;
+      }
+      .navbar a, .navbar-nav .nav-link, .navbar-nav .nav-link:focus, .navbar-nav .nav-link:hover {
+        color: #fff !important;
+        text-decoration: none;
+      }
+      .navbar-user, .navbar-user span, .navbar-brand {
+        color: #fff !important;
+      }
+    </style>
+    <style>
+      /* Dropdown do perfil sempre acima de tudo */
+      .profile-dropdown-fixed {
+        position: fixed !important;
+        top: 64px !important; /* afastar do topo para não cobrir o ícone */
+        right: 24px !important; /* ajuste para alinhar ao ícone */
+        left: auto !important;
+        z-index: 30000 !important;
+        background: #2a448a !important;
+        color: #fff !important;
+      }
+      .profile-dropdown-fixed .dropdown-item {
+        color: #fff !important;
+      }
+      .profile-dropdown-fixed .dropdown-item:hover, .profile-dropdown-fixed .dropdown-item:focus {
+        background: #20305c !important;
+        color: #fff !important;
+      }
+      .profile-dropdown-fixed .dropdown-divider {
+        border-top: none !important;
+      }
+    </style>
+  <style>
+    /* Hamburger button */
+    .hamburger-btn {
+      position: relative;
+      top: 0;
+      left: 0;
+      z-index: 1051;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: #1D3771;
+      border: 1px solid #1D3771;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      transition: background 0.2s;
+      margin-right: 14px;
+    }
+    .hamburger-btn:hover {
+      background: #284a99;
+      border-color: #284a99;
+    }
+    .hamburger-btn span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      margin: 2px auto;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    /* Overlay menu */
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 240px;
+      max-width: 100vw;
+      height: 100vh;
+      background: #2a448a;
+      z-index: 20000;
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding-top: 38px;
+      box-shadow: 2px 0 16px rgba(0,0,0,0.15);
+      animation: fadeIn 0.3s;
+      border-top-right-radius: 16px;
+      border-bottom-right-radius: 16px;
+    }
+    .menu-overlay.active { display: flex; }
+    @media (max-width: 400px) {
+      .menu-overlay { width: 100vw; border-radius: 0; }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .menu-overlay .close-btn {
+      position: absolute;
+      top: 8px; left: 18px;
+      font-size: 2.2rem;
+      color: #fff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 20001;
+    }
+    @media (max-width: 400px) {
+      .menu-overlay .close-btn { left: unset; right: 18px; }
+    }
+    .menu-overlay nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      align-items: flex-start;
+      width: 100%;
+      padding-left: 32px;
+      margin-top: 32px;
+    }
+    .menu-overlay nav a {
+      color: #fff;
+      font-size: 1.08rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+      padding: 3px 0;
+    }
+    .menu-overlay nav a:hover {
+      color: #0d6efd;
+    }
+    @media (max-width: 600px) {
+      .menu-overlay nav a { font-size: 0.95rem; }
+      .hamburger-btn { width: 38px; height: 38px; }
+    }
+  </style>
+</head>
+<body>
+<!-- Hamburger e Overlay Menu Global -->
+<!-- Botão hamburger dentro da navbar, alinhado à esquerda da logo -->
+<div class="menu-overlay" id="menuOverlay" tabindex="-1">
+  <button class="close-btn" id="closeMenuBtn" aria-label="Fechar menu">&times;</button>
+  <nav style="gap:0.3rem;">
+  <a href="/accounts/dashboard/" aria-label="Ir para o Dashboard" style="font-size:14px;"><i class="bi bi-house"></i> Dashboard</a>
+  <a href="{% url 'accounts:profile' %}" aria-label="Ir para o Perfil" style="font-size:14px;"><i class="bi bi-person"></i> Perfil</a>
+  <hr style="border-top:1px solid #fff3; width:85%; margin: 4px 0 3px 0;">
+
+  <div class="menu-accordion">
+    <div class="menu-accordion-section">
+      <button class="menu-accordion-header" type="button">Imagens <i class="bi bi-chevron-down float-end"></i></button>
+      <div class="menu-accordion-body">
+        <a class="menu-subitem" href="{% url 'images:image_list' %}" aria-label="Ver minhas imagens"><i class="bi bi-image"></i> Minhas Imagens</a>
+        <a class="menu-subitem" href="{% url 'images:upload_image' %}" aria-label="Fazer upload de imagem"><i class="bi bi-cloud-arrow-up"></i> Upload de Imagem</a>
+      </div>
+    </div>
+    <div class="menu-accordion-section">
+      <button class="menu-accordion-header" type="button">Documentos <i class="bi bi-chevron-down float-end"></i></button>
+      <div class="menu-accordion-body">
+        <a class="menu-subitem" href="{% url 'images:document_list' %}" aria-label="Ver meus documentos"><i class="bi bi-file-earmark-text"></i> Meus Documentos</a>
+        <a class="menu-subitem" href="{% url 'images:upload_document' %}" aria-label="Fazer upload de documento"><i class="bi bi-cloud-arrow-up"></i> Upload de Documento</a>
+      </div>
+    </div>
+    <div class="menu-accordion-section">
+      <button class="menu-accordion-header" type="button">Áudio <i class="bi bi-chevron-down float-end"></i></button>
+      <div class="menu-accordion-body">
+        <a class="menu-subitem" href="{% url 'images:audio_list' %}" aria-label="Ver meus áudios"><i class="bi bi-mic"></i> Meus Áudios</a>
+        <a class="menu-subitem" href="{% url 'images:upload_audio' %}" aria-label="Fazer upload de áudio"><i class="bi bi-cloud-arrow-up"></i> Upload de Áudio</a>
+      </div>
+    </div>
+    <div class="menu-accordion-section">
+      <button class="menu-accordion-header" type="button">Vídeos <i class="bi bi-chevron-down float-end"></i></button>
+      <div class="menu-accordion-body">
+        <a class="menu-subitem" href="{% url 'images:video_list' %}" aria-label="Ver meus vídeos"><i class="bi bi-film"></i> Meus Vídeos</a>
+        <a class="menu-subitem" href="{% url 'images:upload_video' %}" aria-label="Fazer upload de vídeos"><i class="bi bi-cloud-arrow-up"></i> Upload de Vídeos</a>
+      </div>
+    </div>
+  </div>
+  <style>
+    .menu-accordion-section { margin-bottom: 4px; }
+    .menu-accordion-header {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #bcd;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+      padding: 6px 0 6px 2px;
+      cursor: pointer;
+      outline: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .menu-accordion-header:focus, .menu-accordion-header:hover {
+      color: #fff;
+    }
+    .menu-accordion-body {
+      display: none;
+      flex-direction: column;
+      margin-left: 22px;
+      margin-bottom: 2px;
+    }
+    .menu-accordion-section.active .menu-accordion-body {
+      display: flex;
+    }
+    .menu-accordion-section .menu-accordion-header i {
+      margin-left: 6px;
+      transition: transform 0.2s;
+    }
+    .menu-accordion-section.active .menu-accordion-header i {
+      transform: rotate(-180deg);
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const accHeaders = document.querySelectorAll('.menu-accordion-header');
+      accHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+          const section = this.closest('.menu-accordion-section');
+          // Fecha todas
+          document.querySelectorAll('.menu-accordion-section').forEach(s => {
+            if (s !== section) s.classList.remove('active');
+          });
+          // Toggle a clicada
+          section.classList.toggle('active');
+        });
+      });
+      // Inicialmente todos fechados
+      document.querySelectorAll('.menu-accordion-section').forEach(s => s.classList.remove('active'));
+    });
+  </script>
+  <hr style="border-top:1px solid #fff3; width:85%; margin: 4px 0 3px 0;">
+  {% if user.is_superuser or user.userprofile.is_admin %}
+    <a href="{% url 'config:global_settings' %}" style="color:#00e6b8;font-size:14px;" aria-label="Configurações"><i class="bi bi-gear"></i> Configurações</a>
+  {% endif %}
+  <a href="{% url 'accounts:logout' %}" style="color:#ffb3b3;font-size:14px;" aria-label="Sair da conta"><i class="bi bi-box-arrow-right"></i> Sair</a>
+</nav>
+<style>
+.menu-section {
+  display: block;
+  color: #bcd;
+  font-size: 14px;
+  margin-left: 2px;
+  margin-top: 10px;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+.menu-subitem {
+  display: block;
+  margin-left: 0px;
+  font-size: 14px !important;
+  color: #fff;
+  padding: 1px 0 1px 0;
+  text-decoration: none;
+  font-weight: 400;
+  line-height: 1.25;
+}
+.menu-subitem i {
+  margin-right: 4px;
+}
+.menu-subitem:hover {
+  color: #0d6efd;
+}
+</style>
+</div>
+
+    <nav class="navbar navbar-expand-lg mb-4 shadow-sm" style="background:#1D3771 !important;color:#fff !important;position:relative;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+  <div class="container-fluid" style="width:100vw;max-width:100vw;overflow-x:hidden;padding-left:12px;padding-right:12px;margin-left:0;margin-right:0;">
+    <div class="d-flex align-items-center">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir menu" style="position:relative;left:0;top:0;margin-right:14px;">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <img src="/static/logo.png" alt="Logo" class="logo-img me-2" onerror="this.style.display='none'">
+      <a class="navbar-brand mb-0" href="/">LibraryVault</a>
+    </div>
+    <div class="d-flex align-items-center ms-auto gap-3">
+      <span class="navbar-user" style="font-size:14px;">Bem-vindo, <span class="fw-semibold">{{ user.get_full_name|default:user.username }}</span></span>
+      {% if user.is_authenticated %}
+      <div class="dropdown">
+        <a href="#" role="button" id="navbarProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color:#fff;font-size:1.325rem;line-height:1;vertical-align:middle;background:none;border:none;box-shadow:none;padding:0 12px 0 0;">
+          <i class="bi bi-person-circle"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end profile-dropdown-fixed" aria-labelledby="navbarProfileDropdown">
+          <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person"></i> Perfil</a></li>
+          <li><a class="dropdown-item" href="{% url 'accounts:dashboard_profile' %}"><i class="bi bi-bar-chart"></i> Dashboard</a></li>
+          <li><a class="dropdown-item" href="{% url 'accounts:edit_profile' %}"><i class="bi bi-pencil"></i> Editar Perfil</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i> Sair</a></li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid p-0" style="width:100vw;max-width:100vw;overflow-x:hidden;padding-left:12px;padding-right:12px;margin-left:0;margin-right:0;">
+        <div class="row position-relative">
+           <main class="col-12 py-3">
+             {% block content %}{% endblock %}
+           </main>
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var trigger = document.getElementById('navbarProfileDropdown');
+        var dropdownMenu = document.querySelector('.profile-dropdown-fixed');
+        if (trigger && dropdownMenu) {
+          trigger.addEventListener('click', function (e) {
+            e.preventDefault();
+            // Bootstrap 5 dropdown manual
+            var dropdown = bootstrap.Dropdown.getOrCreateInstance(trigger);
+            dropdown.toggle();
+            // Força o display para teste
+            dropdownMenu.style.display = (dropdownMenu.style.display === 'block') ? 'none' : 'block';
+          });
+        }
+      });
+    </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const menuOverlay = document.getElementById('menuOverlay');
+      const closeMenuBtn = document.getElementById('closeMenuBtn');
+      // Abrir menu
+      hamburgerBtn.onclick = () => menuOverlay.classList.add('active');
+      // Fechar menu
+      closeMenuBtn.onclick = () => menuOverlay.classList.remove('active');
+      // Fechar ao clicar fora do nav
+      menuOverlay.addEventListener('click', function(e) {
+        if (e.target === menuOverlay) menuOverlay.classList.remove('active');
+      });
+      // Fechar com ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') menuOverlay.classList.remove('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="alert alert-warning mt-4" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ msg|default:"Nenhum arquivo foi encontrado." }}
+  </div>
+  <a href="{% url 'images:image_list' %}" class="btn btn-primary mt-3">Voltar para a lista de imagens</a>
+{% endblock %}

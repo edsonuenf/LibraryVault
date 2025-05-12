@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5" style="max-width: 800px;">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white d-flex align-items-center">
+            <i class="bi bi-upload me-2"></i>
+            <span class="fw-bold">Upload de Imagem</span>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="id_title" class="form-label">Título <span class="text-danger">*</span></label>
+                        <input type="text" id="id_title" name="title" class="form-control" placeholder="Ex: Pôr do Sol na Praia" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_tags" class="form-label">Tags</label>
+                        <input type="text" id="id_tags" name="tags" class="form-control" placeholder="paisagem, praia, verão">
+                        <small class="form-text text-muted">Separe por vírgulas</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_description" class="form-label">Descrição</label>
+                        <textarea id="id_description" name="description" class="form-control" rows="2" placeholder="Breve descrição da imagem..."></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_images" class="form-label">Arquivo <span class="text-danger">*</span></label>
+                        <input type="file" id="id_images" name="images" multiple class="form-control" required accept=".jpg,.jpeg,.png,.gif,.tif,.tiff,.webp">
+                        <small class="form-text text-muted">Formatos aceitos: JPG, JPEG, PNG, GIF, TIF, TIFF, WEBP. Tamanho máximo: 10MB. Selecione múltiplos arquivos com Ctrl ou Shift.</small>
+                    </div>
+                </div>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" value="1" id="verMinhasImagens" name="ver_minhas">
+                    <label class="form-check-label" for="verMinhasImagens">
+                        Ver minhas imagens
+                    </label>
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-cloud-upload me-2"></i> Enviar Imagem
+                    </button>
+                    <a href="{% url 'images:image_list' %}" class="btn btn-outline-success">
+                        <i class="bi bi-images me-2"></i> Ver minhas imagens
+                    </a>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="{% url 'images:image_list' %}" class="text-decoration-none">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    a.btn-outline-success {
+        border-color: #6c757d !important;
+        color: #6c757d !important;
+    }
+    a.btn-outline-success .bi {
+        color: #6c757d !important;
+    }
+    a.btn-outline-success:hover {
+        background-color: #6c757d !important;
+        color: #fff !important;
+        border-color: #6c757d !important;
+    }
+    a.btn-outline-success:hover .bi {
+        color: #fff !important;
+    }
+</style>
+<!-- Adicione Bootstrap Icons em seu base.html para os ícones aparecerem corretamente -->
+
+{% endblock %}

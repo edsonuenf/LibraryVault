@@ -1,0 +1,32 @@
+python manage.py runserverdocker-compose up --buildpython manage.py shellfrom apps.images.models import Audio, Video
+from apps.images.models_organization import UserProfile
+
+for audio in Audio.objects.filter(organization__isnull=True):
+    try:
+        user_profile = UserProfile.objects.get(user=audio.user)
+        audio.organization = user_profile.organization
+        audio.save()
+        print(f"Audio {audio.id} corrigido.")
+    except UserProfile.DoesNotExist:
+        print(f"Audio {audio.id} sem UserProfile, não corrigido.")
+
+for video in Video.objects.filter(organization__isnull=True):
+    try:
+        user_profile = UserProfile.objects.get(user=video.user)
+        video.organization = user_profile.organization
+        video.save()
+        print(f"Video {video.id} corrigido.")
+    except UserProfile.DoesNotExist:
+        print(f"Video {video.id} sem UserProfile, não corrigido.")# requirements para LibraryVault
+Django>=4.2
+psycopg2-binary
+celery
+redis
+minio
+boto3
+elasticsearch
+weaviate-client
+djangorestframework
+python-dotenv
+django-allauth
+social-auth-app-django

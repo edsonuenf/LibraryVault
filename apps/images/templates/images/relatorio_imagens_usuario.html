@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Exportar Relatório de Imagens do Usuário</h2>
+<a href="?export=csv" class="btn btn-primary">Exportar CSV</a>
+<p>Usuário: {{ user.username }}</p>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Arquivo</th>
+            <th>Data de Upload</th>
+            <th>Organização</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for image in images %}
+        <tr>
+            <td>{{ image.id }}</td>
+            <td>{{ image.title }}</td>
+            <td>
+                {% if image.file %}
+                    <a href="{{ image.file.url }}" target="_blank">{{ image.original_filename }}</a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>{{ image.upload_date|date:'d/m/Y H:i' }}</td>
+            <td>{{ image.organization }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">Nenhuma imagem encontrada para este usuário.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

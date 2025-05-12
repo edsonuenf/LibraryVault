@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Upload de Documento</h2>
+<form method="post" enctype="multipart/form-data" class="mb-3">
+    {% csrf_token %}
+    <div class="mb-3">{{ form.title.label_tag }}{{ form.title }}</div>
+    <div class="mb-3">{{ form.authors.label_tag }}{{ form.authors }}</div>
+    <div class="mb-3">{{ form.subject.label_tag }}{{ form.subject }}</div>
+    <div class="mb-3">{{ form.description.label_tag }}{{ form.description }}</div>
+    <div class="mb-3">{{ form.creation_date.label_tag }}{{ form.creation_date }}</div>
+    <div class="mb-3">{{ form.publication_date.label_tag }}{{ form.publication_date }}</div>
+    <div class="mb-3">{{ form.publisher.label_tag }}{{ form.publisher }}</div>
+    <div class="mb-3">{{ form.version.label_tag }}{{ form.version }}</div>
+    <div class="mb-3">{{ form.languages.label_tag }}{{ form.languages }}</div>
+    <div class="mb-3">{{ form.keywords.label_tag }}{{ form.keywords }}</div>
+    <div class="mb-3">{{ form.doc_type.label_tag }}{{ form.doc_type }}</div>
+    <div class="mb-3">
+        <label for="id_file" class="form-label">Arquivo(s)</label>
+        <input type="file" name="file[]" id="id_file" class="form-control" multiple required>
+        <small class="form-text text-muted">Você pode selecionar múltiplos arquivos.</small>
+    </div>
+    <button type="submit" class="btn btn-success">Enviar</button>
+    <a href="{% url 'documents:list' %}" class="btn btn-secondary">Voltar</a>
+</form>
+{% endblock %}

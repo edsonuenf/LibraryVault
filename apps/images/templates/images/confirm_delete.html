@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Confirmação de Exclusão</h2>
+  {% if audio %}
+    <p>Tem certeza que deseja excluir o áudio <strong>{{ audio.title }}</strong>?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Sim, excluir</button>
+      <a href="{% url 'images:audio_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  {% elif document %}
+    <p>Tem certeza que deseja excluir o documento <strong>{{ document.title }}</strong>?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Sim, excluir</button>
+      <a href="{% url 'images:document_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  {% elif image %}
+    <p>Tem certeza que deseja excluir a imagem <strong>{{ image.title }}</strong>?</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="page" value="{{ page|default:'' }}">
+      <input type="hidden" name="order_by" value="{{ ordering|default:'' }}">
+      <input type="hidden" name="filetype" value="{{ filetype|default:'' }}">
+      <button type="submit" class="btn btn-danger">Sim, excluir</button>
+      <a href="{% url 'images:image_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  {% elif video %}
+    <p>Tem certeza que deseja excluir o vídeo <strong>{{ video.title }}</strong>?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Sim, excluir</button>
+      <a href="{% url 'images:video_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  {% endif %}
+{% endblock %}

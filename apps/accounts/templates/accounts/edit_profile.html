@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="fw-bold mb-4">Editar Perfil</h2>
+  <div class="card shadow-sm mb-4" style="max-width: 480px;">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Usuário</label>
+          <input type="text" name="username" class="form-control" id="id_username" value="{{ form.username.value|default_if_none:'' }}">
+          {{ form.username.errors }}
+        </div>
+        <div class="mb-3">
+          <label for="id_first_name" class="form-label">Nome</label>
+          <input type="text" name="first_name" class="form-control" id="id_first_name" value="{{ form.first_name.value|default_if_none:'' }}">
+          {{ form.first_name.errors }}
+        </div>
+        <div class="mb-3">
+          <label for="id_last_name" class="form-label">Sobrenome</label>
+          <input type="text" name="last_name" class="form-control" id="id_last_name" value="{{ form.last_name.value|default_if_none:'' }}">
+          {{ form.last_name.errors }}
+        </div>
+        <div class="mb-3">
+          <label for="id_organization" class="form-label">Organização</label>
+          {{ form.organization }}
+          {{ form.organization.errors }}
+        </div>
+        <div class="mb-3">
+          <label for="id_endereco" class="form-label">Endereço</label>
+          <input type="text" name="endereco" class="form-control" id="id_endereco" value="{{ form.endereco.value|default_if_none:'' }}">
+          {{ form.endereco.errors }}
+        </div>
+        <div class="mb-3">
+          <label for="id_cep" class="form-label">CEP</label>
+          <input type="text" name="cep" class="form-control" id="id_cep" value="{{ form.cep.value|default_if_none:'' }}">
+          {{ form.cep.errors }}
+        </div>
+        <div class="mb-3">
+          <label for="id_telefone" class="form-label">Telefone</label>
+          <input type="text" name="telefone" class="form-control" id="id_telefone" value="{{ form.telefone.value|default_if_none:'' }}">
+          {{ form.telefone.errors }}
+        </div>
+        <!-- Cropper.js CSS -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+        <div class="mb-3">
+          <label for="id_profile_picture" class="form-label">Foto de Perfil</label>
+          <br>
+          <div style="position:relative; display:inline-block;">
+            {% if user.profile_picture %}
+              <img src="{{ user.profile_picture.url }}" alt="Foto de Perfil Atual" class="rounded-circle" style="width: 64px; height: 64px; object-fit: cover; border: 2px solid #ddd;">
+              <button type="button" id="delete-profile-pic" class="btn btn-danger btn-sm" style="position:absolute; top:-10px; right:-10px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center;" title="Excluir Foto">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            {% endif %}
+          </div>
+          <input type="file" name="profile_picture" class="form-control mt-2" id="id_profile_picture" accept="image/*" {% if user.profile_picture %}disabled{% endif %}>
+          {% if user.profile_picture %}
+            <div class="form-text text-warning">Para enviar uma nova foto, exclua a atual primeiro.</div>
+          {% endif %}
+          {{ form.profile_picture.errors }}
+        </div>
+
+        <!-- Modal Cropper -->
+        <div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="cropperModalLabel">Cortar Foto de Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <div style="max-width:100%; max-height:300px;">
+                  <img id="cropper-image" src="#" style="max-width:100%; display:block; margin:auto;">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="cropper-save-btn">Recortar e Salvar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cropper.js JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          let cropper;
+          const input = document.getElementById('id_profile_picture');
+          const modalEl = document.getElementById('cropperModal');
+          const modal = new bootstrap.Modal(modalEl);
+          const cropperImg = document.getElementById('cropper-image');
+          const saveBtn = document.getElementById('cropper-save-btn');
+          const deleteBtn = document.getElementById('delete-profile-pic');
+
+          if (input) {
+            input.addEventListener('change', function(e) {
+              const file = e.target.files[0];
+              if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                  cropperImg.src = evt.target.result;
+                  modal.show();
+                  if (cropper) cropper.destroy();
+                  cropper = new Cropper(cropperImg, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    minContainerWidth: 300,
+                    minContainerHeight: 300,
+                  });
+                };
+                reader.readAsDataURL(file);
+              }
+            });
+          }
+
+          if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+              if (cropper) {
+                cropper.getCroppedCanvas({ width: 300, height: 300 }).toBlob(function(blob) {
+                  const file = new File([blob], 'profile_cropped.webp', { type: 'image/webp' });
+                  const dataTransfer = new DataTransfer();
+                  dataTransfer.items.add(file);
+                  input.files = dataTransfer.files;
+                  modal.hide();
+                }, 'image/webp');
+              }
+            });
+          }
+
+          // Botão de excluir foto de perfil
+          if (deleteBtn) {
+            deleteBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              if (confirm('Tem certeza que deseja excluir sua foto de perfil?')) {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'delete_profile_picture';
+                hidden.value = '1';
+                input.form.appendChild(hidden);
+                input.form.submit();
+              }
+            });
+          }
+        });
+        </script>
+        <div class="mb-3">
+          <label for="id_email" class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" id="id_email" value="{{ form.email.value|default_if_none:'' }}" disabled>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary ms-2">Cancelar</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

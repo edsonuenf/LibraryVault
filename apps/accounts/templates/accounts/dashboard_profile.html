@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="fw-bold mb-4">Dashboard do Perfil</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Total de Imagens</h5>
+          <p class="display-6 fw-bold">{{ total_images }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Total de Áudios</h5>
+          <p class="display-6 fw-bold">{{ total_audios }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Total de Vídeos</h5>
+          <p class="display-6 fw-bold">{{ total_videos }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-4 mt-4">
+    <div class="col-md-6">
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Uploads de Imagens por Mês</h5>
+          <canvas id="uploadsChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Destaques</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>Tipo mais enviado:</strong> {{ top_media|default:'Nenhum' }}</li>
+            <li class="list-group-item"><strong>Último upload de imagem:</strong> {% if last_image %}{{ last_image.upload_date|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</li>
+            <li class="list-group-item"><strong>Último upload de áudio:</strong> {% if last_audio %}{{ last_audio.uploaded_at|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</li>
+            <li class="list-group-item"><strong>Último upload de vídeo:</strong> {% if last_video %}{{ last_video.uploaded_at|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4 text-end">
+    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Voltar ao Perfil</a>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('uploadsChart').getContext('2d');
+  const labels = {{ chart_labels|safe }};
+  const data = {{ chart_data|safe }};
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Uploads',
+        data: data,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true, precision: 0 }
+      }
+    }
+  });
+</script>
+{% endblock %}

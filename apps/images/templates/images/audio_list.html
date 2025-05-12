@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row align-items-center mb-3" style="padding-left: 12px; padding-right: 20px;">
+  <div class="col-6">
+    <h2 class="fw-bold" style="font-size:20px;">Meus Áudios</h2>
+  </div>
+  <div class="col-6 text-end">
+    <form method="get" class="d-flex align-items-center gap-2 mb-0 flex-wrap justify-content-end">
+      <select name="filetype" class="form-select" style="max-width:180px;">
+        <option value="">Todos os tipos</option>
+        <option value="mp3">MP3</option>
+        <option value="wav">WAV</option>
+        <option value="ogg">OGG</option>
+        <!-- Adicione outros tipos suportados -->
+      </select>
+      <select name="ordering" class="form-select" style="max-width:220px;">
+        <option value="recent">Áudios recentes</option>
+        <option value="oldest">Áudios mais antigos</option>
+      </select>
+      <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+    </form>
+  </div>
+</div>
+<form id="bulk-delete-form" method="post" action="{% url 'images:bulk_delete_audios' %}">
+  {% csrf_token %}
+  <input type="hidden" name="page" value="{{ page_obj.number }}">
+  <input type="hidden" name="filetype" value="{{ filetype }}">
+  <input type="hidden" name="ordering" value="{{ ordering }}">
+  <div class="row align-items-center mb-2" style="padding-left: 12px; padding-right: 20px;">
+    <div class="col-4 text-start">
+      <button id="select-all-btn" type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-check2-square"></i> Selecionar todos</button>
+    </div>
+    <div class="col-4 text-center">
+      <a href="{% url 'images:upload_audio' %}" class="btn btn-success btn-sm" style="background:#198754;border-color:#198754;" d-inline-flex align-items-center gap-2"><i class="bi bi-cloud-arrow-up"></i> Upload de áudio</a>
+    </div>
+    <div class="col-4 text-end">
+        <button id="delete-selected-btn" type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Excluir selecionados</button>
+    </div>
+  </div>
+  {% if audios %}
+  <style>
+  @media (min-width: 1200px) {
+    .col-xl-2-4 {
+      flex: 0 0 auto;
+      width: 20%;
+    }
+  }
+  </style>
+
+  <div class="main-gallery-container" style="padding-left: 12px; padding-right: 20px;">
+    <div class="row g-3">
+      {% for audio in audios %}
+        <div class="col-12 col-md-6 col-lg-4 col-xl-2-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <input type="checkbox" name="audio_ids" value="{{ audio.id }}" class="form-check-input ms-1 mt-1" style="margin-bottom:12px;">
+<h5 class="card-title text-truncate">{{ audio.title }}</h5>
+          <p class="card-text mb-1">
+            <span class="badge bg-info text-dark text-uppercase">{{ audio.file_extension }}</span>
+            <small class="text-muted ms-2">Enviado em {{ audio.uploaded_at|date:"d/m/Y H:i" }}</small>
+          </p>
+          <div class="bg-light border rounded d-flex align-items-center justify-content-center mb-2 audio-thumb" style="height:60px;cursor:pointer;" data-audio-url="{{ audio.file.url }}" data-audio-type="audio/{{ audio.file_extension }}">
+            <i class="bi bi-music-note-beamed fs-1 text-secondary"></i>
+          </div>
+          <a href="{% url 'images:download_audio' audio.id %}"
+   class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-2 mt-2"
+   title="{{ audio.original_filename }}">
+    <i class="bi bi-download"></i>
+    <span class="fw-semibold">Baixar</span>
+    <span class="small text-muted ms-1">{{ audio.original_filename }}</span>
+</a>
+          
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="alert alert-info mt-4" role="alert">
+    <i class="bi bi-info-circle"></i> Você ainda não enviou nenhum áudio.
+  </div>
+{% endif %}
+
+<nav aria-label="Navegação de páginas">
+  <div class="d-flex flex-column align-items-center mt-4 mb-4">
+    <ul class="pagination mb-2">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.filetype %}&filetype={{ request.GET.filetype }}{% endif %}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}" aria-label="Anterior">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.filetype %}&filetype={{ request.GET.filetype }}{% endif %}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.filetype %}&filetype={{ request.GET.filetype }}{% endif %}{% if request.GET.ordering %}&ordering={{ request.GET.ordering }}{% endif %}" aria-label="Próxima">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+    <span class="small text-muted" style="white-space:nowrap;">{{ page_obj.paginator.num_pages }} página{{ page_obj.paginator.num_pages|pluralize }}, {{ page_obj.paginator.count }} áudio{{ page_obj.paginator.count|pluralize }}</span>
+  </div>
+</nav>
+</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<!-- Modal para player de áudio -->
+<div class="modal fade" id="audioModal" tabindex="-1" aria-labelledby="audioModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content bg-dark bg-opacity-75 border-0">
+      <div class="modal-body p-0 position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        <audio id="modalAudioPlayer" controls class="w-100 rounded" style="background:#000;max-height:70vh;">
+          <source src="" type="">
+          Seu navegador não suporta áudio HTML5.
+        </audio>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var audioModal = new bootstrap.Modal(document.getElementById('audioModal'));
+  var modalAudioPlayer = document.getElementById('modalAudioPlayer');
+  var audioThumbs = document.querySelectorAll('.audio-thumb');
+  audioThumbs.forEach(function(thumb) {
+    thumb.addEventListener('click', function() {
+      var url = thumb.getAttribute('data-audio-url');
+      var type = thumb.getAttribute('data-audio-type');
+      var source = modalAudioPlayer.querySelector('source');
+      source.src = url;
+      source.type = type;
+      modalAudioPlayer.load();
+      audioModal.show();
+    });
+  });
+  document.getElementById('audioModal').addEventListener('hidden.bs.modal', function () {
+    modalAudioPlayer.pause();
+    modalAudioPlayer.currentTime = 0;
+  });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAllBtn = document.getElementById('select-all-btn');
+  const deleteBtn = document.getElementById('delete-selected-btn');
+  const checkboxes = document.querySelectorAll('input[type="checkbox"][name="audio_ids"]');
+  let allSelected = false;
+
+  function updateDeleteBtnState() {
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    deleteBtn.disabled = !anyChecked;
+  }
+
+  // Inicialmente desabilita o botão
+  updateDeleteBtnState();
+
+  selectAllBtn.addEventListener('click', function() {
+    allSelected = !allSelected;
+    checkboxes.forEach(cb => { cb.checked = allSelected; });
+    selectAllBtn.innerHTML = allSelected
+      ? '<i class="bi bi-x-square"></i> Desmarcar todos'
+      : '<i class="bi bi-check2-square"></i> Selecionar todos';
+    updateDeleteBtnState();
+  });
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateDeleteBtnState);
+  });
+
+  // Confirmação ao excluir
+  deleteBtn.addEventListener('click', function(e) {
+    if (deleteBtn.disabled) {
+      e.preventDefault();
+      return false;
+    }
+    if (!confirm('Tem certeza que deseja excluir os áudios selecionados?')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+});
+</script>
+{% endblock %}
